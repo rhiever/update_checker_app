@@ -4,10 +4,11 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 __version__ = '0.1'
 
-DB_URI = 'sqlite:///database.db'
+DB_URI = 'postgresql://@/updatechecker'
 
 APP = Flask(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = DB_URI
+APP.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(APP)
 
 from .controllers import *
