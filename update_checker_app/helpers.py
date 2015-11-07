@@ -4,6 +4,19 @@ from time import time
 import requests
 
 
+def configure_logging(app):
+    """Send ERROR log to ADMINS emails."""
+    ADMINS = ['bbzbryce@gmail.com']
+    if not app.debug:
+        import logging
+        from logging.handlers import SMTPHandler
+        mail_handler = SMTPHandler(
+            '127.0.0.1', 'server-error@update_checker.bryceboe.com',
+            ADMINS, 'UpdateChecker Failed')
+        mail_handler.setLevel(logging.ERROR)
+        app.logger.addHandler(mail_handler)
+
+
 def package_cache(function):
     """Memoize the wrapped function."""
     CACHE_TIME = 600
