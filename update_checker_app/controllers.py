@@ -5,7 +5,7 @@ from .helpers import get_current_version
 from .models import IPAddr, Installation, Package, Platform, PythonVersion, db
 
 
-ALLOWED_PACKAGES = {'lazysuzan', 'praw'}
+ALLOWED_PACKAGES = {'lazysusan', 'praw'}
 
 
 @APP.route('/')
