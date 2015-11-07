@@ -5,6 +5,9 @@ from .helpers import get_current_version
 from .models import IPAddr, Installation, Package, Platform, PythonVersion, db
 
 
+ALLOWED_PACKAGES = {'lazysuzan', 'praw'}
+
+
 @APP.route('/')
 def home():
     return "Hello!"
@@ -24,6 +27,9 @@ def check():
     package_version = request.json['package_version']
     platform = request.json['platform']
     python_version = request.json['python_version']
+
+    if package_name not in ALLOWED_PACKAGES:
+        abort(400)
 
     ipaddr = IPAddr.fetch_or_create(value=request.remote_addr)
     package = Package.fetch_or_create(package_name=package_name,
