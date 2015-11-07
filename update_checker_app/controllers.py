@@ -37,11 +37,14 @@ def check():
     platform = Platform.fetch_or_create(value=platform)
     python_version = PythonVersion.fetch_or_create(value=python_version)
 
-    rows = Installation.query.filter_by(
-        day=db.func.Date(db.func.now()), ipaddr=ipaddr, package=package,
-        platform=platform, python_version=python_version).update(
-        {Installation.count: Installation.count + 1},
-        synchronize_session=False)
+    if ipaddr.id and package.id and platform.id and python_version.id:
+        rows = Installation.query.filter_by(
+            day=db.func.Date(db.func.now()), ipaddr=ipaddr, package=package,
+            platform=platform, python_version=python_version).update(
+                {Installation.count: Installation.count + 1},
+                synchronize_session=False)
+    else:
+        rows = False
     if not rows:
         installation = Installation(count=1, ipaddr=ipaddr, package=package,
                                     platform=platform,
