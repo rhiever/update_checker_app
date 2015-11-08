@@ -1,6 +1,8 @@
 """Defines various one-off helpers for the package."""
 from functools import wraps
+from sqlalchemy.exc import IntegrityError
 from time import time
+from .models import IPAddr, Installation, Package, Platform, PythonVersion, db
 import requests
 
 
@@ -48,3 +50,31 @@ def get_current_version(package):
             upload_time = file_info['upload_time']
     return {'success': True, 'data': {'upload_time': upload_time,
                                       'version': json_data['info']['version']}}
+
+
+def record_check(name, version, platform_str, python_version_str, ip):
+    """Record the update check."""
+    package = Package.fetch_or_create(package_name=name,
+                                      package_version=version)
+    platform = Platform.fetch_or_create(value=platform_str)
+    python_version = PythonVersion.fetch_or_create(value=python_version_str)
+    ipaddr = IPAddr.fetch_or_create(value=ip)
+
+    update = False
+    if ipaddr.id and package.id and platform.id and python_version.id:
+        update = Installation.query.filter_by(
+            day=db.func.Date(db.func.now()), ipaddr=ipaddr, package=package,
+            platform=platform, python_version=python_version).update(
+                {Installation.count: Installation.count + 1},
+                synchronize_session=False)
+    if not update:
+        installation = Installation(count=1, ipaddr=ipaddr, package=package,
+                                    platform=platform,
+                                    python_version=python_version)
+        db.session.add(installation)
+
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        record_check(name, version, platform_str, python_version_str, ip, True)

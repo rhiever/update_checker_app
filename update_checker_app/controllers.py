@@ -1,8 +1,8 @@
 from collections import Counter
 from flask import abort, jsonify, request, url_for
 from . import APP
-from .helpers import get_current_version
-from .models import IPAddr, Installation, Package, Platform, PythonVersion, db
+from .helpers import get_current_version, record_check
+from .models import Installation, Package
 
 
 ALLOWED_PACKAGES = {'lazysusan', 'praw'}
@@ -24,33 +24,13 @@ def check():
         abort(400)
 
     package_name = request.json['package_name']
-    package_version = request.json['package_version']
-    platform = request.json['platform']
-    python_version = request.json['python_version']
-
     if package_name not in ALLOWED_PACKAGES:
         abort(400)
 
-    ipaddr = IPAddr.fetch_or_create(value=request.remote_addr)
-    package = Package.fetch_or_create(package_name=package_name,
-                                      package_version=package_version)
-    platform = Platform.fetch_or_create(value=platform)
-    python_version = PythonVersion.fetch_or_create(value=python_version)
+    record_check(package_name, request.json['package_version'],
+                 request.json['platform'], request.json['python_version'],
+                 request.remote_addr)
 
-    if ipaddr.id and package.id and platform.id and python_version.id:
-        rows = Installation.query.filter_by(
-            day=db.func.Date(db.func.now()), ipaddr=ipaddr, package=package,
-            platform=platform, python_version=python_version).update(
-                {Installation.count: Installation.count + 1},
-                synchronize_session=False)
-    else:
-        rows = False
-    if not rows:
-        installation = Installation(count=1, ipaddr=ipaddr, package=package,
-                                    platform=platform,
-                                    python_version=python_version)
-        db.session.add(installation)
-    db.session.commit()
     return jsonify(get_current_version(package_name))
 
 
