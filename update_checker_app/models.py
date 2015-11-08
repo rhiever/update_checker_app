@@ -41,6 +41,17 @@ class Installation(db.Model, ModelMixin):
     python_id = db.Column(db.Integer, db.ForeignKey('pythonversion.id'),
                           index=True, nullable=False)
 
+    @staticmethod
+    def recent_counts(column, filter_list):
+        """Return distinct counts."""
+        limit = db.text('now() - interval \'1 day\'')
+        columns = [column, db.func.count(Installation.id),
+                   db.func.sum(Installation.count)]
+        filters = db.and_(Installation.created_at >= limit,
+                          column.in_(filter_list))
+        return db.session.query(*columns).filter(filters).group_by(column)\
+                         .order_by(db.func.count(Installation.id).desc()).all()
+
 
 class Package(db.Model, ModelMixin):
     __table_args__ = (db.UniqueConstraint('package_name', 'package_version'),)
@@ -52,6 +63,9 @@ class Package(db.Model, ModelMixin):
             return parse_version(self.package_version) \
                 < parse_version(other.package_version)
         return self.name < other.name
+
+    def __str__(self):
+        return '{0} {1}'.format(self.package_name, self.package_version)
 
 
 class Platform(db.Model, ModelMixin):

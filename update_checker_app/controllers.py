@@ -48,53 +48,13 @@ def list():
 @APP.route('/p/<package_name>')
 def package_info(package_name):
     packages = Package.query.filter_by(package_name=package_name).all()
-    if not packages:
-        return 'We have no records for package `{0}`'.format(package_name)
-    retval = '<h1>{0} versions</h1>\n<ul>\n'.format(package_name)
-    for package in sorted(packages, reverse=True):
-        retval += ('<li><a href="{0}">{1}</a></li>'
-                   .format(url_for('version_info', package_name=package_name,
-                                   package_id=package.id),
-                           package.package_version))
-    return retval + '</ul>\n'
+    by_id = {x.id: x for x in packages}
+    results = Installation.recent_counts(Installation.package_id,
+                                         [x.id for x in packages])
 
-
-@APP.route('/p/<package_name>/<package_id>')
-def version_info(package_name, package_id):
-    def disp(x):
-        return x if x else ''
-
-    package = Package.query.filter_by(id=package_id).first()
-    if not package:
-        return 'We have no records for package `{0}`'.format(package_id)
-
-    total_checks = (Installation.query.filter_by(package_id=package_id)
-                    .order_by(Installation.created_at).all())
-    unique_checks = set(x.ipaddr for x in total_checks)
-    by_date = [0]
-    date_idx = 0
-    cur_date = total_checks[0].created_at.date()
-    for item in total_checks:
-        if item.created_at.date() != cur_date:
-            for _ in range((item.created_at.date() - cur_date).days):
-                date_idx += 1
-                by_date.append(0)
-            cur_date = item.created_at.date()
-        else:
-            by_date[date_idx] += 1
-
-    retval = '<h1>{0} {1}</h1>\n'.format(package_name, package.package_version)
-    retval += '<p>Checks: {0}, {1} unique</p>\n'.format(len(total_checks),
-                                                        len(unique_checks))
-    retval += '<p>First: {0}</p>\n'.format(total_checks[0].created_at)
-    retval += '<p>Last: {0}</p>\n'.format(total_checks[-1].created_at)
-    retval += '<pre>\n'
-    COLUMNS = 7
-    for iteration in range(len(by_date) / COLUMNS + 1):
-        start = iteration * COLUMNS
-        end = min(len(by_date), (iteration + 1) * COLUMNS)
-        retval += ' '.join('{0:4}'.format(x) for x in range(start, end))
-        retval += '\n'
-        retval += ' '.join('{0:4}'.format(disp(x)) for x in by_date[start:end])
-        retval += '\n\n'
-    return retval + '\n<pre>'
+    rows = ['<tr><th>Version</th><th>Unique</th><th>Total</th></tr>']
+    for pid, uniq, total in results:
+        rows.append('<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>'
+                    .format(str(by_id[pid]), uniq, total))
+    return '<h3>Versions from the last 24 hours</h3>\n<table>\n{0}</table>'\
+        .format('\n'.join(rows))
