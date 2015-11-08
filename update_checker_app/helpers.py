@@ -11,7 +11,7 @@ def configure_logging(app):
         import logging
         from logging.handlers import SMTPHandler
         mail_handler = SMTPHandler(
-            '127.0.0.1', 'server-error@update_checker.bryceboe.com',
+            '127.0.0.1', 'server-error@updatechecker.bryceboe.com',
             ADMINS, 'UpdateChecker Failed')
         mail_handler.setLevel(logging.ERROR)
         app.logger.addHandler(mail_handler)
