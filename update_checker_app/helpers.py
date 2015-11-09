@@ -77,4 +77,4 @@ def record_check(name, version, platform_str, python_version_str, ip):
         db.session.commit()
     except IntegrityError:
         db.session.rollback()
-        record_check(name, version, platform_str, python_version_str, ip, True)
+        record_check(name, version, platform_str, python_version_str, ip)
