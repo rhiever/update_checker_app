@@ -1,7 +1,7 @@
 from collections import Counter
 from flask import abort, jsonify, request, url_for
 from . import APP
-from .helpers import get_current_version, record_check
+from .helpers import get_current_version, record_check, versions_table
 from .models import Installation, Package
 
 
@@ -52,19 +52,12 @@ def package_info(package_name):
     results = Installation.recent_counts(Installation.package_id,
                                          [x.id for x in packages])
 
-    rows = ['<tr><th>Version</th><th>Unique</th><th>Total</th></tr>']
-    uniq_sum = total_sum = 0
-    for pid, uniq, total in results:
-        rows.append('<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>'
-                    .format(str(by_id[pid]), uniq, total))
-        uniq_sum += uniq
-        total_sum += total
+    versions = [str(by_id[x[0]]) for x in results]
+    unique_counts = [x[1] for x in results]
+    total_counts = [x[2] for x in results]
 
-    rows.append('<tr><td>Sum</td><td>{0}</td><td>{1}</td></tr>'
-                .format(uniq_sum, total_sum))
-
-    return '<h3>Versions from the last 24 hours</h3>\n<table>\n{0}</table>'\
-        .format('\n'.join(rows))
+    table = versions_table(versions, unique_counts, total_counts)
+    return '<h3>Versions from the last 24 hours</h3>\n{0}'.format(table)
 
 
 @APP.route('/python')
