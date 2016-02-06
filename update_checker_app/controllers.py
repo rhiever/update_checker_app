@@ -2,7 +2,7 @@ from collections import Counter
 from flask import abort, jsonify, request, url_for
 from . import APP
 from .helpers import get_current_version, record_check, versions_table
-from .models import Installation, Package
+from .models import Installation, Package, PythonVersion
 
 
 ALLOWED_PACKAGES = {'lazysusan', 'praw'}
@@ -49,8 +49,7 @@ def list():
 def package_info(package_name):
     packages = Package.query.filter_by(package_name=package_name).all()
     by_id = {x.id: x for x in packages}
-    results = Installation.recent_counts(Installation.package_id,
-                                         [x.id for x in packages])
+    results = Installation.recent_counts(Installation.package_id, by_id.keys())
 
     versions = [str(by_id[x[0]]) for x in results]
     unique_counts = [x[1] for x in results]
@@ -62,4 +61,13 @@ def package_info(package_name):
 
 @APP.route('/python')
 def python_versions():
-    return ''
+    pythons = PythonVersion.query.all()
+    by_id = {x.id: x for x in pythons}
+    results = Installation.recent_counts(Installation.python_id, by_id.keys())
+
+    versions = [str(by_id[x[0]]) for x in results]
+    unique_counts = [x[1] for x in results]
+    total_counts = [x[2] for x in results]
+
+    table = versions_table(versions, unique_counts, total_counts)
+    return '<h3>Versions from the last 24 hours</h3>\n{0}'.format(table)
