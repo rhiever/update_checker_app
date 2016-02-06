@@ -74,3 +74,6 @@ class Platform(db.Model, ModelMixin):
 
 class PythonVersion(db.Model, ModelMixin):
     value = db.Column(db.Unicode, unique=True, nullable=False)
+
+    def __str__(self):
+        return self.value
