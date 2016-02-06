@@ -36,13 +36,13 @@ def check():
 
 @APP.route('/list')
 def list():
-    retval = '<ul>\n'
+    retval = '<h3>Packages</h3>\n<ul>\n'
     packages = Counter(x.package_name for x in Package.query.all())
     for package, count in sorted(packages.items()):
         retval += ('  <li><a href="{2}">{0}</a> ({1} versions)</li>\n'
                    .format(package, count, url_for('package_info',
                                                    package_name=package)))
-    return retval + '<ul>\n'
+    return retval + '</ul>\n<p><a href="/python">Python Versions</a></p>\n'
 
 
 @APP.route('/p/<package_name>')
@@ -53,8 +53,20 @@ def package_info(package_name):
                                          [x.id for x in packages])
 
     rows = ['<tr><th>Version</th><th>Unique</th><th>Total</th></tr>']
+    uniq_sum = total_sum = 0
     for pid, uniq, total in results:
         rows.append('<tr><td>{0}</td><td>{1}</td><td>{2}</td></tr>'
                     .format(str(by_id[pid]), uniq, total))
+        uniq_sum += uniq
+        total_sum += total
+
+    rows.append('<tr><td>Sum</td><td>{0}</td><td>{1}</td></tr>'
+                .format(uniq_sum, total_sum))
+
     return '<h3>Versions from the last 24 hours</h3>\n<table>\n{0}</table>'\
         .format('\n'.join(rows))
+
+
+@APP.route('/python')
+def python_versions():
+    return ''
