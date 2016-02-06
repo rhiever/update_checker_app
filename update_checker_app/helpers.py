@@ -40,7 +40,11 @@ def package_cache(function):
 @package_cache
 def get_current_version(package):
     """Return information about the current version of package."""
-    r = requests.get('http://pypi.python.org/pypi/{0}/json'.format(package))
+    try:
+        r = requests.get('http://pypi.python.org/pypi/{0}/json'
+                         .format(package))
+    except requests.exceptions.RequestException:
+        return {'success': False}
     if r.status_code != 200:
         return {'success': False}
     upload_time = None
