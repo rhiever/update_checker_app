@@ -5,7 +5,7 @@ from .helpers import get_current_version, record_check, versions_table
 from .models import Installation, Package, PythonVersion
 
 
-ALLOWED_PACKAGES = {'lazysusan', 'praw'}
+ALLOWED_PACKAGES = {'lazysusan', 'praw', 'tpot', 'redditanalysis'}
 
 
 @APP.route('/')
