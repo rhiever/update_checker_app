@@ -29,5 +29,5 @@ setup(name=PACKAGE_NAME,
       license='Simplified BSD License',
       long_description=README,
       packages=[PACKAGE_NAME],
-      url = 'https://github.com/bboe/update_checker_app',
+      url='https://github.com/bboe/update_checker_app',
       version=VERSION)

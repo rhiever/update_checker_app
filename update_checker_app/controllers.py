@@ -1,11 +1,14 @@
 from collections import Counter
+
 from flask import abort, jsonify, request, url_for
+
 from . import APP
-from .helpers import get_current_version, record_check, versions_table
+from .helpers import (get_current_version, normalize, record_check,
+                      versions_table)
 from .models import Installation, Package, PythonVersion
 
 
-ALLOWED_PACKAGES = {'lazysusan', 'praw', 'tpot', 'redditanalysis'}
+ALLOWED_PACKAGES = {'lazysusan', 'praw', 'redditanalysis', 'tpot'}
 
 
 @APP.route('/')
@@ -23,14 +26,18 @@ def check():
     if not request.json or not required.issubset(request.json):
         abort(400)
 
-    package_name = request.json['package_name']
+    package_name = normalize(request.json['package_name'])
     if package_name not in ALLOWED_PACKAGES:
         abort(400)
 
-    record_check(package_name, request.json['package_version'],
-                 request.json['platform'], request.json['python_version'],
-                 request.remote_addr)
+    package_version = request.json['package_version'].strip()
+    platform = normalize(request.json['platform'])
+    python_version = normalize(request.json['python_version'])
+    if not (package_version and platform and python_version):
+        abort(400)
 
+    record_check(package_name, package_version, platform, python_version,
+                 request.remote_addr)
     return jsonify(get_current_version(package_name))
 
 
