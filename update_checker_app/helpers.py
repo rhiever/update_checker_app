@@ -19,6 +19,11 @@ def configure_logging(app):
         app.logger.addHandler(mail_handler)
 
 
+def normalize(string):
+    """Return stripped and lower-cased string."""
+    return string.strip().lower()
+
+
 def package_cache(function):
     """Memoize the wrapped function."""
     CACHE_TIME = 600
