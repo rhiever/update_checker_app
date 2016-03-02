@@ -8,7 +8,7 @@ from .helpers import (get_current_version, normalize, record_check,
 from .models import Installation, Package, PythonVersion
 
 
-ALLOWED_PACKAGES = {'lazysusan', 'praw', 'redditanalysis', 'tpot', 'xrff2csv', 'datacleaner'}
+ALLOWED_PACKAGES = {'datacleaner', 'lazysusan', 'praw', 'redditanalysis', 'tpot', 'xrff2csv'}
 
 
 @APP.route('/')
